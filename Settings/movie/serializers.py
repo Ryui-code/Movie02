@@ -55,7 +55,7 @@ class LoginSerializer(serializers.Serializer):
             'refresh': str(refresh)
         }
 
-class LogoutSerializer(serializers.ModelSerializer):
+class LogoutSerializer(serializers.Serializer):
     refresh = serializers.CharField(required=True)
 
     def validate(self, data):
