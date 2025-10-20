@@ -10,8 +10,6 @@ STATUS_CHOICES = (
 )
 
 class CustomUser(AbstractUser):
-    username = models.CharField(max_length=16, unique=True)
-    email = models.EmailField()
     phone_number = PhoneNumberField(null=True, blank=True)
     age = models.PositiveSmallIntegerField(validators=[MinValueValidator(12), MaxValueValidator(75)], null=True, blank=True)
     status = models.CharField(choices=STATUS_CHOICES, default='simple')

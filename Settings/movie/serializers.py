@@ -9,11 +9,9 @@ class RegisterSerializer(serializers.ModelSerializer):
         model = CustomUser
         fields = [
             'username',
-            'email',
-            'phone_number',
-            'age',
+            'password',
             'status',
-            'data_registered'
+            'data_registered',
         ]
         extra_kwargs = {'password': {'write_only': True}}
 
@@ -31,7 +29,7 @@ class RegisterSerializer(serializers.ModelSerializer):
                 'refresh': str(refresh)
             }
 
-class LoginSerializer(serializers.ModelSerializer):
+class LoginSerializer(serializers.Serializer):
     username = serializers.CharField()
     password = serializers.CharField(write_only=True)
 
