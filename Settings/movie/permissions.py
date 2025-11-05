@@ -1,9 +1,23 @@
-from rest_framework import permissions
+from rest_framework.permissions import BasePermission, SAFE_METHODS
 
-class CheckStatus(permissions.BasePermission):
-    def has_object_permission(self, request, view, obj):
-        if request.user.status == 'simple' and obj.status_movie == 'simple':
+class GuestRestrictedPermission(BasePermission):
+    def has_permission(self, request, view):
+        user = request.user
+        if not user.is_authenticated:
+            return False
+
+        if getattr(user, 'status', None) != 'Guest':
             return True
-        elif request.user.status == 'pro':
+
+        try:
+            model_name = view.get_queryset().model.__name__
+        except Exception:
             return True
-        return False
+
+        restricted_models = ['Actor', 'MovieLanguage']
+        if model_name in restricted_models:
+            return False
+
+        if model_name == 'Movie':
+            return request.method in SAFE_METHODS
+        return True

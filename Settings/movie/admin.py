@@ -1,6 +1,19 @@
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin
 from .models import *
 from modeltranslation.admin import TranslationAdmin
+
+@admin.register(CustomUser)
+class CustomUserAdmin(UserAdmin):
+    fieldsets = [
+        (None, {
+            'classes': ('wide',),
+            'fields': (
+                'username', 'password', 'email', 'status', 'data_registered', 'token'
+            ),
+        }),
+    ]
+    readonly_fields = ['token', 'data_registered']
 
 class MovieLanguageInline(admin.TabularInline):
     model = MovieLanguage
@@ -19,7 +32,7 @@ class Admin(TranslationAdmin):
             'screen': ('modeltranslation/css/tabbed_translation_fields.css',),
         }
 
-admin.register(Actor, Country)
+admin.register(Actor)
 class ProductAdmin(TranslationAdmin):
     class Media:
         js = (
@@ -32,7 +45,5 @@ class ProductAdmin(TranslationAdmin):
         }
 
 admin.site.register(Rating)
-admin.site.register(Favorite)
 admin.site.register(FavoriteMovie)
 admin.site.register(History)
-admin.site.register(CustomUser)

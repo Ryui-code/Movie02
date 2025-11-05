@@ -1,5 +1,7 @@
 from rest_framework import serializers
 from tokenize import TokenError
+import secrets
+from rest_framework.exceptions import ValidationError, AuthenticationFailed
 from .models import *
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
@@ -12,88 +14,55 @@ class RegisterSerializer(serializers.ModelSerializer):
             'password',
             'status',
             'data_registered',
+            'token'
         ]
-        extra_kwargs = {'password': {'write_only': True}}
 
-    def create(self, validate_data):
-        user = CustomUser.objects.create_user(**validate_data)
+        extra_kwargs = {
+            'password': {'write_only': True},
+            'token': {'read_only': True}
+        }
+
+    def create(self, validated_data):
+        validated_data['token'] = secrets.token_hex(32)
+        user = CustomUser.objects.create_user(**validated_data)
         return user
 
-    def to_representation(self, instance):
-        refresh = RefreshToken.for_user(instance)
-        return {
-            'user': {'username': instance.username,
-                     'email': instance.email,
-                },
-            'access': str(refresh.access_token),
-                'refresh': str(refresh)
-            }
-
 class LoginSerializer(serializers.Serializer):
-    username = serializers.CharField()
+    username = serializers.CharField(max_length=32)
     password = serializers.CharField(write_only=True)
 
     def validate(self, data):
-        username = data.get('username')
-        password = data.get('password')
-        user = CustomUser.objects.filter(username=username).first()
+        user = authenticate(username=data['username'], password=data['password'])
         if not user:
-            raise serializers.ValidationError('No user found with this username')
-        user = authenticate(username=user.username, password=password)
-        if not user:
-            raise serializers.ValidationError('Incorrect credentials')
-        return user
-
-    def to_representation(self, instance):
-        refresh = RefreshToken.for_user(instance)
-        return {
-            'user': {
-                'username': instance.username,
-                'email': instance.email,
-            },
-            'access': str(refresh.access_token),
-            'refresh': str(refresh)
-        }
+            raise AuthenticationFailed('Incorrect credentials.')
+        return {'user': user}
 
 class LogoutSerializer(serializers.Serializer):
-    refresh = serializers.CharField(required=True)
+    token = serializers.CharField()
 
-    def validate(self, data):
-        refresh_token = data.get('refresh')
+    def validate(self, attrs):
+        self.token = attrs['token']
+        return attrs
+
+    def save(self, **kwargs):
         try:
-            token = RefreshToken(refresh_token)
-            return token
+            token = RefreshToken(self.token)
+            token.blacklist()
         except TokenError:
-            raise serializers.ValidationError({'detail': 'No token like this'})
-
-    def save(self):
-        refresh_token = self.validated_data['refresh']
-        token = RefreshToken(refresh_token)
-        token.blacklist()
+            raise ValidationError('No token like this.')
 
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = '__all__'
 
-class SimpleProfileSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CustomUser
-        fields = ['username']
-
 class ActorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Actor
-        fields = ['actor_name']
+        fields = '__all__'
 
-class CountrySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Country
-        fields = ['country_name']
-
-class MovieListSerializer(serializers.ModelSerializer):
+class MovieSerializer(serializers.ModelSerializer):
     year = serializers.DateField(format='%Y')
-    country = CountrySerializer(many=True)
     class Meta:
         model = Movie
         fields = ['movie_name', 'movie_image', 'country', 'date', 'movie_status']
@@ -104,15 +73,9 @@ class MovieLanguageSerializer(serializers.ModelSerializer):
         fields = ['language', 'video']
 
 class RatingSerializer(serializers.ModelSerializer):
-    user = SimpleProfileSerializer()
     created_date = serializers.DateTimeField(format='%d-%m-%Y %H:%M')
     class Meta:
         model = Rating
-        fields = '__all__'
-
-class FavoriteSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Favorite
         fields = '__all__'
 
 class FavoriteMovieSerializer(serializers.ModelSerializer):
