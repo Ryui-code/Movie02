@@ -49,7 +49,6 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
     'allauth.socialaccount.providers.github',
-    'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
     'modeltranslation',
     'django_countries',
