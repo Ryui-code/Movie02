@@ -55,7 +55,7 @@ class LogoutView(APIView):
 class ProfileViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = CustomUser.objects.all()
     serializer_class = RegisterSerializer
-    permission_classes = [GuestRestrictedPermission]
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         return CustomUser.objects.filter(id=self.request.user.id)
