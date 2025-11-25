@@ -44,6 +44,7 @@ class ProductAdmin(TranslationAdmin):
             'screen': ('modeltranslation/css/tabbed_translation_fields.css',),
         }
 
+admin.site.register(Movie)
 admin.site.register(Rating)
 admin.site.register(FavoriteMovie)
 admin.site.register(History)
