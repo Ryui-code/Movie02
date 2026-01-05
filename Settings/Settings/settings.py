@@ -157,13 +157,7 @@ MODELTRANSLATION_LANGUAGES = ('en', 'ru')
 
 STATIC_URL = 'static/'
 
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-PHONENUMBER_DEFAULT_REGION = 'KG'
-PHONENUMBER_DB_FORMAT = 'INTERNATIONAL'
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
